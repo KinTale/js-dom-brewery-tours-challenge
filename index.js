@@ -1,8 +1,10 @@
 const STATE = {
     brewries: [],
+    collect: [],
     byCity: []
 }
 
+//STANDARD CRITERIA
 
 const searchData = document.querySelector("#select-state-form")
 const searchInput = document.querySelector("#select-state")
@@ -10,17 +12,17 @@ const breweryList = document.querySelector("#breweries-list")
 const filterForm = document.querySelector("#filter-by-type-form")
 const selectFilter = document.querySelector("#filter-by-type")
 
-
-
-const renderFiltered = () => {
+//4. Event listeners for selected brewery types to render on main page
+const listenToTypes = () => {
     selectFilter.addEventListener('change', function () {
         const filters = selectFilter.value
+        STATE.collect = []
         clear()
         if (filters === '') {
             fetch(`https://api.openbrewerydb.org/breweries?by_state=${searchInput.value}&per_page=50`)
                 .then(response => response.json())
                 .then(data => breweryData(data))
-            return
+            return // renders page to the initial search state if slected "select a type ..."
         }
         fetch(`https://api.openbrewerydb.org/breweries?by_state=${searchInput.value}&by_type=${filters}&per_page=35`)
             .then(response => response.json())
@@ -28,6 +30,7 @@ const renderFiltered = () => {
     })
 }
 
+//3. Renders breweries details on main page
 const renderBrewery = (states) => {
 
     //ADDRESS LIST
@@ -78,23 +81,20 @@ const renderBrewery = (states) => {
     liEL.append(h2EL, typeEL, addressEL, contactEL, websiteEL)
     breweryList.append(liEL)
 
-    filterByCity()
 }
 
-const renderCityFilter = (data) => {
-    STATE.byCity = data
-    clear()
-    for (const states of STATE.byCity) { renderBrewery(states) }
-
-}
-
-
+// 2. 
+// a. Filter the passed data of the three types = 'micro', 'regional' 'brewpub'
+// b. Update STATE
+// c. Each itteration of the STATE pass to renderBrewery() function
 const breweryData = (data) => {
     const byType = data.filter((x) => x.brewery_type === 'micro' || x.brewery_type === 'regional' || x.brewery_type === 'brewpub')
     STATE.brewries = byType
+    filterByCity()
     for (const states of byType) { renderBrewery(states) }
 }
 
+// 1. Fetch data from server then pass to breweryData(data) 
 const fetchBreweryData = () => {
     searchData.addEventListener("submit", function (form) {
         form.preventDefault()
@@ -104,18 +104,25 @@ const fetchBreweryData = () => {
             .then(data => breweryData(data))
     })
 }
-
+// Clears out main page
 const clear = () => {
     breweryList.innerHTML = ''
 }
 
-renderFiltered()
+//CALLING
+listenToTypes()
 fetchBreweryData()
 
 
 // EXTENTION 1
 const searchBarInput = document.querySelector("#search-breweries")
 const breweryNames = breweryList.getElementsByTagName('li')
+
+
+// 1. Collects all input data in uppercase into searched variable
+// 2. For loop on the current list of <li> loaded currently on the page
+// 3. Of each iteration of <li> tags, get its h2 tag and its innerText
+// 4. If statement, with h2 innerText searching with .indexOf() and rendering results in main page
 
 const searchBar = () => {
     searchBarInput.addEventListener('input', function () {
@@ -127,7 +134,6 @@ const searchBar = () => {
 
             if (value.toUpperCase().indexOf(searched) > -1) { names.style.display = '' }
             else { names.style.display = 'none' }
-            filterByCity()
         }
     })
 }
@@ -136,35 +142,24 @@ searchBar()
 
 //EXTENTION 2
 const cityForm = document.querySelector('#filter-by-city-form')
+const inputEL = cityForm.getElementsByTagName('input')
+const labelEL = cityForm.getElementsByTagName('label')
 const clearButton = document.querySelector('.clear-all-btn')
 clearButton.style.cursor = 'pointer'
 
-const filterByCity = () => {
-    cityForm.innerHTML = ''
-    for (const cities of STATE.brewries) {
-        const inputEL = createInput('checkbox', cities.city)
-        const labelEL = createLabel(cities.city, cities.city)
+//1
+// a. Function created specifically to collect data from checked box
+// b. Data is pushed to the collect State as multiple arrays everytime a check box is checked
+// c. STATE.collect is then merged into one array and updated on STATE.byCity 
+// d. STATE.byCity is then rendered showing multiple checked city filters in main page at the same time
 
-        cityForm.append(inputEL, labelEL)
-
-        inputEL.addEventListener('change', function () {
-            if (inputEL.checked) {
-                STATE.byCity = STATE.brewries.filter((x) => x.city === labelEL.innerText)
-                renderCityFilter(STATE.byCity)
-            }
-        })
-
-
-        /*clearButton.addEventListener('click', function () {
-            const clearCheckBox = cityForm.querySelectorAll('input')
-            for (const check of clearCheckBox) {
-                if (check.checked) {
-                    check.checked = false
-                }
-            }
-        })*/
-    }
-  }  
+const renderCityFilter = (data) => {
+    STATE.collect.push(data)
+    const mergedArray = [].concat.apply([], STATE.collect)
+    STATE.byCity = mergedArray
+    clear()
+    for (const states of STATE.byCity) { renderBrewery(states) }
+}
 
 const createInput = (type, name) => {
     const input = document.createElement('input')
@@ -172,11 +167,40 @@ const createInput = (type, name) => {
     input.setAttribute('name', name.toLowerCase())
     return input
 }
-
 const createLabel = (input, text) => {
     const label = document.createElement('label')
     label.attributes.for = input.toLowerCase()
     label.innerText = text
     return label
+}
+
+//2
+// a. Creates event listener check boxes of city filters of all the city in current STATE.brewries
+// b. When box is checked, it returns all the cities in filteredCity that was matched in current brewries state with the labels innerText
+// c. Those cities are then passed into renderCityFilter()
+// d. Creates event listner to clear the filters. It sets the collect and by City state back to default,
+// unchecks all the checked boxes and renders the main page again from the breweris state.
+const filterByCity = () => {
+    cityForm.innerHTML = ''
+    for (const cities of STATE.brewries) {
+        const inputEL = createInput('checkbox', cities.city)
+        const labelEL = createLabel(cities.city, cities.city)
+        cityForm.append(inputEL, labelEL)
+
+        inputEL.addEventListener('change', function () {
+            if (inputEL.checked) {
+                const filteredCity = STATE.brewries.filter((x) => x.city === labelEL.innerText)
+                renderCityFilter(filteredCity)
+            }
+        })
+
+        clearButton.addEventListener('click', function () {
+            STATE.collect = []
+            STATE.byCity = []
+            clear()
+            inputEL.checked = false
+            STATE.brewries.forEach(brewries => renderBrewery(brewries))
+        })
+    }
 }
 
