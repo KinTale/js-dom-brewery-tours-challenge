@@ -5,7 +5,6 @@ const STATE = {
 }
 
 //STANDARD CRITERIA
-
 const searchData = document.querySelector("#select-state-form")
 const searchInput = document.querySelector("#select-state")
 const breweryList = document.querySelector("#breweries-list")
@@ -64,15 +63,12 @@ const renderBrewery = (states) => {
     //PHONE NUMBER
     const phoneNumber = document.createElement('p')
     phoneNumber.innerText = states.phone
-
     //TYPE AND WEB PAGE SECTION
     const websiteEL = document.createElement('section')
     websiteEL.className = 'link'
-
     const linkEL = document.createElement('a')
     linkEL.innerText = 'Visit Website'
     linkEL.setAttribute('href', states.website_url)
-
     //APPENDS
     websiteEL.append(linkEL)
     contactEL.append(phoneH3EL, phoneNumber)
@@ -80,7 +76,6 @@ const renderBrewery = (states) => {
     addressEL.append(addressH3EL, streetEL, cityPostalEL)
     liEL.append(h2EL, typeEL, addressEL, contactEL, websiteEL)
     breweryList.append(liEL)
-
 }
 
 // 2. 
@@ -93,7 +88,6 @@ const breweryData = (data) => {
     filterByCity()
     for (const states of byType) { renderBrewery(states) }
 }
-
 // 1. Fetch data from server then pass to breweryData(data) 
 const fetchBreweryData = () => {
     searchData.addEventListener("submit", function (form) {
@@ -104,7 +98,6 @@ const fetchBreweryData = () => {
             .then(data => breweryData(data))
     })
 }
-// Clears out main page
 const clear = () => {
     breweryList.innerHTML = ''
 }
@@ -114,10 +107,9 @@ listenToTypes()
 fetchBreweryData()
 
 
-// EXTENTION 1
+// EXTENTION 1 
 const searchBarInput = document.querySelector("#search-breweries")
 const breweryNames = breweryList.getElementsByTagName('li')
-
 
 // 1. Collects all input data in uppercase into searched variable
 // 2. For loop on the current list of <li> loaded currently on the page
@@ -126,12 +118,10 @@ const breweryNames = breweryList.getElementsByTagName('li')
 
 const searchBar = () => {
     searchBarInput.addEventListener('input', function () {
-
         const searched = searchBarInput.value.toUpperCase()
         for (const names of breweryNames) {
             const h2 = names.getElementsByTagName('h2')[0]
             const value = h2.innerText
-
             if (value.toUpperCase().indexOf(searched) > -1) { names.style.display = '' }
             else { names.style.display = 'none' }
         }
@@ -160,7 +150,6 @@ const renderCityFilter = (data) => {
     clear()
     for (const states of STATE.byCity) { renderBrewery(states) }
 }
-
 const createInput = (type, name) => {
     const input = document.createElement('input')
     input.setAttribute('type', type.toLowerCase())
@@ -180,6 +169,7 @@ const createLabel = (input, text) => {
 // c. Those cities are then passed into renderCityFilter()
 // d. Creates event listner to clear the filters. It sets the collect and by City state back to default,
 // unchecks all the checked boxes and renders the main page again from the breweris state.
+
 const filterByCity = () => {
     cityForm.innerHTML = ''
     for (const cities of STATE.brewries) {
@@ -193,7 +183,6 @@ const filterByCity = () => {
                 renderCityFilter(filteredCity)
             }
         })
-
         clearButton.addEventListener('click', function () {
             STATE.collect = []
             STATE.byCity = []
