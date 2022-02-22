@@ -66,10 +66,7 @@ const renderBrewery = (states) => {
     const phoneH3EL = document.createElement('h3')
     phoneH3EL.innerText = 'Phone'
     //PHONE NUMBER
-    let phoneNum = states.phone
-    if (phoneNum === null) {
-        phoneNum = 'N/A'
-    }
+    const phoneNum = states.phone ? `+${states.phone}` : 'N/A'
     const phoneNumber = document.createElement('p')
     phoneNumber.innerText = phoneNum
     //TYPE AND WEB PAGE SECTION
@@ -192,7 +189,6 @@ const filterByCity = () => {
                 const filteredCity = STATE.brewries.filter((x) => x.city === labelEL.innerText)
                 renderCityFilter(filteredCity)
             }
-    
         })
         clearButton.addEventListener('click', function () {
             STATE.filterCollection = []
